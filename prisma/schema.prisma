@@ -1,0 +1,79 @@
+// Matt's Gutter Cleaning — data model for the booking system.
+//
+// Local dev uses SQLite (zero setup, runs offline). To move to Supabase/Postgres
+// for production, change `provider` to "postgresql" and set DATABASE_URL to your
+// Supabase connection string, then run `npx prisma migrate deploy`.
+// Note: fields use String for enum-like values to stay portable across SQLite/Postgres.
+
+generator client {
+  provider = "prisma-client"
+  output   = "../src/generated/prisma"
+}
+
+datasource db {
+  provider = "sqlite"
+}
+
+model Customer {
+  id        String    @id @default(cuid())
+  name      String
+  email     String    @unique
+  phone     String
+  createdAt DateTime  @default(now())
+  bookings  Booking[]
+}
+
+model Booking {
+  id           String   @id @default(cuid())
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+  service      String // ServiceKey
+  propertyType String // PropertyTypeKey
+  address      String
+  postcode     String
+  date         String // YYYY-MM-DD (local date of the job)
+  time         String // HH:mm (start of the slot)
+  name         String
+  email        String
+  phone        String
+  notes        String?
+  status       String   @default("pending") // pending | confirmed | completed | cancelled | rejected
+  priceFrom    Int?
+  priceTo      Int?
+  needsQuote   Boolean  @default(false)
+
+  customer       Customer? @relation(fields: [customerId], references: [id])
+  customerId     String?
+  reminderSentAt DateTime?
+
+  @@index([date])
+  @@index([status])
+}
+
+// Specific dates Matt is unavailable (holidays, bank holidays, days off).
+model BlockedDate {
+  id     String  @id @default(cuid())
+  date   String  @unique // YYYY-MM-DD
+  reason String?
+}
+
+// Simple key/value store for availability config (working days, hours, slots,
+// max jobs per day, holiday mode). See lib/settings.ts for the typed accessor.
+model Setting {
+  key   String @id
+  value String
+}
+
+// Queue of 12-month "book your annual clean" reminders, created when a job is
+// marked completed. A cron/route processes due rows and sends the email.
+model AnnualReminder {
+  id        String   @id @default(cuid())
+  bookingId String
+  email     String
+  name      String
+  dueDate   String // YYYY-MM-DD (~12 months after completion)
+  sent      Boolean  @default(false)
+  createdAt DateTime @default(now())
+
+  @@index([dueDate, sent])
+}

@@ -1,0 +1,169 @@
+@import "tailwindcss";
+
+/* Manual (class-based) dark mode so visitors get a toggle, not just OS preference. */
+@custom-variant dark (&:where(.dark, .dark *));
+
+/*
+  Brand palette (from brief):
+    Primary   navy  #0F4C81
+    Secondary sky   #2D9CDB
+    Accent    amber #F4B400   <- single locked accent across the whole page
+    Surface         #F8FAFC
+    Ink             #1A202C
+*/
+@theme {
+  --font-sans: var(--font-jakarta), ui-sans-serif, system-ui, sans-serif;
+  --font-display: var(--font-jakarta), ui-sans-serif, system-ui, sans-serif;
+
+  --color-navy-50: #eef4fb;
+  --color-navy-100: #d6e4f3;
+  --color-navy-200: #aac7e6;
+  --color-navy-300: #6f9fd2;
+  --color-navy-400: #3a73ad;
+  --color-navy-500: #1c5b97;
+  --color-navy-600: #0f4c81;
+  --color-navy-700: #0d4271;
+  --color-navy-800: #0b3357;
+  --color-navy-900: #082841;
+  --color-navy-950: #051a2c;
+
+  --color-sky-brand: #2d9cdb;
+  --color-sky-soft: #6fc0ea;
+
+  --color-amber-brand: #f4b400;
+  --color-amber-deep: #d89e00;
+
+  --radius-card: 1.25rem;
+
+  --shadow-soft: 0 1px 2px rgb(15 76 129 / 0.04), 0 12px 32px -12px rgb(15 76 129 / 0.18);
+  --shadow-lift: 0 2px 4px rgb(15 76 129 / 0.06), 0 24px 48px -16px rgb(15 76 129 / 0.28);
+}
+
+:root {
+  --bg: #f8fafc;
+  --bg-elevated: #ffffff;
+  --ink: #1a202c;
+  --ink-muted: #51607a;
+  --hairline: #e2e8f0;
+  color-scheme: light;
+}
+
+.dark {
+  --bg: #051a2c;
+  --bg-elevated: #082841;
+  --ink: #eaf2fb;
+  --ink-muted: #9bb0c9;
+  --hairline: #143553;
+  color-scheme: dark;
+}
+
+@layer base {
+  * {
+    border-color: var(--hairline);
+  }
+  html {
+    scroll-behavior: smooth;
+    -webkit-font-smoothing: antialiased;
+    text-rendering: optimizeLegibility;
+  }
+  @media (prefers-reduced-motion: reduce) {
+    html {
+      scroll-behavior: auto;
+    }
+  }
+  body {
+    background-color: var(--bg);
+    color: var(--ink);
+    font-feature-settings: "ss01", "cv01";
+  }
+  ::selection {
+    background-color: var(--color-amber-brand);
+    color: #051a2c;
+  }
+  :focus-visible {
+    outline: 2px solid var(--color-sky-brand);
+    outline-offset: 2px;
+    border-radius: 4px;
+  }
+}
+
+/* Semantic helpers driven by the CSS variables above (work in both themes). */
+@utility text-ink {
+  color: var(--ink);
+}
+@utility text-muted {
+  color: var(--ink-muted);
+}
+@utility bg-surface {
+  background-color: var(--bg);
+}
+@utility bg-elevated {
+  background-color: var(--bg-elevated);
+}
+@utility border-hairline {
+  border-color: var(--hairline);
+}
+
+/* Hero ambient gradient - animates transform/opacity only (GPU friendly). */
+@keyframes drift {
+  0%,
+  100% {
+    transform: translate3d(0, 0, 0) scale(1);
+  }
+  50% {
+    transform: translate3d(2%, -3%, 0) scale(1.08);
+  }
+}
+.hero-aura::before,
+.hero-aura::after {
+  content: "";
+  position: absolute;
+  border-radius: 9999px;
+  filter: blur(60px);
+  pointer-events: none;
+  z-index: 0;
+}
+.hero-aura::before {
+  width: 38rem;
+  height: 38rem;
+  top: -12rem;
+  right: -8rem;
+  background: radial-gradient(circle, rgb(45 156 219 / 0.35), transparent 70%);
+  animation: drift 14s ease-in-out infinite;
+}
+.hero-aura::after {
+  width: 30rem;
+  height: 30rem;
+  bottom: -10rem;
+  left: -6rem;
+  background: radial-gradient(circle, rgb(244 180 0 / 0.22), transparent 70%);
+  animation: drift 18s ease-in-out infinite reverse;
+}
+@media (prefers-reduced-motion: reduce) {
+  .hero-aura::before,
+  .hero-aura::after {
+    animation: none;
+  }
+}
+
+/* Single marquee for the "areas covered" strip. */
+@keyframes marquee {
+  from {
+    transform: translateX(0);
+  }
+  to {
+    transform: translateX(-50%);
+  }
+}
+.marquee-track {
+  animation: marquee 38s linear infinite;
+}
+@media (prefers-reduced-motion: reduce) {
+  .marquee-track {
+    animation: none;
+  }
+}
+.marquee-mask {
+  -webkit-mask-image: linear-gradient(90deg, transparent, #000 8%, #000 92%, transparent);
+  mask-image: linear-gradient(90deg, transparent, #000 8%, #000 92%, transparent);
+}
